@@ -10,10 +10,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Course {
     // 表示id类型都用usize吗？其他语言里面不是long或者Int吗？
-    pub teacher_id: usize,
+    // 后来发现和数据库取数据时的类型不太匹配，所以还是改成i32吧
+    pub teacher_id: i32,
 
     // 使用Option类型的时候，因为新增的时候没有id
-    pub id: Option<usize>,
+    pub id: Option<i32>,
 
     pub name: String,
 
@@ -33,7 +34,3 @@ impl From<web::Json<Course>> for Course {
         }
     }
 }
-
-
-
-
