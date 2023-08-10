@@ -24,6 +24,9 @@ mod models;
 #[path = "../db_access.rs"]
 mod db_access;
 
+#[path = "../errors.rs"]
+mod errors;
+
 use routers::*;
 use state::AppState;
 

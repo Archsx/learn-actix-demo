@@ -1,23 +1,37 @@
 use crate::models::Course;
+
+// use super::models::Course;
+
+use super::errors::MyError;
+
 use sqlx::PgPool;
 
-pub async fn get_courses_for_teacher_db(pool: &PgPool, teacher_id: i32) -> Vec<Course> {
+pub async fn get_courses_for_teacher_db(
+    pool: &PgPool,
+    teacher_id: i32,
+) -> Result<Vec<Course>, MyError> {
     let rows = sqlx::query!(
         r#"SELECT id,teacher_id,name,time FROM course where id = $1"#,
         teacher_id
     )
     .fetch_all(pool)
-    .await
-    .unwrap();
+    .await?;
+    // .unwrap();
 
-    rows.iter()
+    let courses: Vec<Course> = rows
+        .iter()
         .map(|r| Course {
             id: Some(r.id),
             teacher_id: r.teacher_id,
             name: r.name.clone(),
             time: r.time,
         })
-        .collect()
+        .collect();
+
+    match courses.len() {
+        0 => Err(MyError::NotFound("Course not found for teacher".into())),
+        _ => Ok(courses),
+    }
 }
 
 pub async fn get_course_details_db(pool: &PgPool, teacher_id: i32, course_id: i32) -> Course {
@@ -47,7 +61,6 @@ pub async fn post_new_course_db(pool: &PgPool, new_course: Course) -> Course {
     .fetch_one(pool)
     .await
     .unwrap();
-
 
     Course {
         id: Some(row.id),

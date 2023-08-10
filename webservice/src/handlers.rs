@@ -23,6 +23,7 @@ pub async fn health_check_handler(app_state: web::Data<AppState>) -> HttpRespons
 }
 
 use super::models::Course;
+use crate::errors::MyError;
 use chrono::Utc;
 
 pub async fn new_course(
@@ -63,7 +64,7 @@ pub async fn new_course(
 pub async fn get_courses_for_teacher(
     app_state: web::Data<AppState>,
     params: web::Path<(usize)>, // params里面其实是一个元组，元组里面就一个元素，是usize类型,注意，这里的逗号不能省略，加了才表示元组
-) -> HttpResponse {
+) -> Result<HttpResponse, MyError> {
     // let teacher_id: usize = params.0;
     //
     // let filtered_course = app_state
@@ -83,9 +84,9 @@ pub async fn get_courses_for_teacher(
 
     let tid = params.into_inner();
     let teacher_id = i32::try_from(tid).unwrap();
-    let courses = get_courses_for_teacher_db(&app_state.db, teacher_id).await;
-
-    HttpResponse::Ok().json(courses)
+    get_courses_for_teacher_db(&app_state.db, teacher_id)
+        .await
+        .map(|course| HttpResponse::Ok().json(course))
 }
 
 pub async fn get_course_detail(
@@ -174,6 +175,9 @@ mod tests {
         let teacher_id: web::Path<(usize)> = web::Path::from((1));
 
         let resp = get_courses_for_teacher(app_state, teacher_id).await;
+
+        
+
 
         // 其实这里的测试我觉得差点意思
         // 为什么只能比较状态码啊
